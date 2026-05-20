@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZerouFood – Zere seu estoque, compre barato, salve alimentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #00E5A0;
+    --azul: #00AAFF;
+    --verde-dark: #00B87A;
+    --azul-dark: #0077CC;
+    --bg: #1E2235;
+    --bg2: #252A40;
+    --bg3: #2C3350;
+    --text: #F0F4FF;
+    --text-muted: #8A95B5;
+    --border: rgba(255,255,255,0.07);
+    --grad: linear-gradient(90deg, #00E5A0, #00AAFF);
+    --grad-diag: linear-gradient(135deg, #00E5A0, #00AAFF);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(30,34,53,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 5%;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+  }
+  .logo-nav {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.9rem; font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-right { display: flex; gap: 1rem; align-items: center; }
+  .btn-ghost {
+    background: none; border: 1px solid var(--border);
+    color: var(--text); padding: 0.5rem 1.2rem;
+    border-radius: 8px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    transition: border-color 0.2s, background 0.2s;
+    text-decoration: none;
+  }
+  .btn-ghost:hover { border-color: var(--verde); background: rgba(0,229,160,0.05); }
+  .btn-grad {
+    background: var(--grad);
+    border: none; color: #0a1a12;
+    padding: 0.55rem 1.4rem;
+    border-radius: 8px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    transition: opacity 0.2s, transform 0.2s;
+    text-decoration: none;
+  }
+  .btn-grad:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* SEARCH BAR */
+  .search-bar {
+    display: flex; align-items: center;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 1rem;
+    gap: 0.75rem;
+    flex: 1; max-width: 520px;
+    transition: border-color 0.2s;
+  }
+  .search-bar:focus-within { border-color: var(--verde); }
+  .search-bar input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; width: 100%; padding: 0.65rem 0;
+  }
+  .search-bar input::placeholder { color: var(--text-muted); }
+  .search-icon { color: var(--text-muted); font-size: 1.1rem; }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 88vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 5rem 5% 4rem;
+    overflow: hidden;
+  }
+  .hero-glow {
+    position: absolute;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(0,229,160,0.12) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hero-glow2 {
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,170,255,0.1) 0%, transparent 70%);
+    bottom: 0; right: -100px;
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 100px;
+    padding: 0.35rem 1rem;
+    font-size: 0.8rem; color: var(--verde);
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge span { width: 6px; height: 6px; background: var(--verde); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .grad-text {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 1.15rem; color: var(--text-muted);
+    max-width: 560px; line-height: 1.7;
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+  .hero-ctas {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  .btn-big {
+    padding: 0.9rem 2rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 600;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.8rem 5%;
+    display: flex; justify-content: center; gap: 4rem;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem; font-weight: 700;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+  /* SECTION */
+  section { padding: 5rem 5%; position: relative; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--verde); margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 700; letter-spacing: -1px;
+    margin-bottom: 1rem;
+  }
+  .section-sub { color: var(--text-muted); max-width: 500px; line-height: 1.7; margin-bottom: 3rem; }
+
+  /* CATEGORIES */
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+  .cat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    text-decoration: none;
+    display: block;
+  }
+  .cat-card:hover {
+    border-color: var(--verde);
+    transform: translateY(-3px);
+    background: var(--bg3);
+  }
+  .cat-emoji { font-size: 2rem; margin-bottom: 0.6rem; }
+  .cat-name { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+  .cat-count { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+  /* PRODUCTS */
+  .products-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+  .product-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .product-card:hover {
+    border-color: rgba(0,229,160,0.4);
+    transform: translateY(-4px);
+  }
+  .product-img {
+    height: 170px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+    position: relative;
+  }
+  .product-img.bg1 { background: linear-gradient(135deg, #1a2e25, #243b30); }
+  .product-img.bg2 { background: linear-gradient(135deg, #1a2535, #1e3040); }
+  .product-img.bg3 { background: linear-gradient(135deg, #2a1a25, #3a2030); }
+  .product-img.bg4 { background: linear-gradient(135deg, #2a2510, #3a3218); }
+  .badge-validade {
+    position: absolute; top: 10px; left: 10px;
+    background: rgba(255,100,50,0.9);
+    color: #fff; font-size: 0.7rem; font-weight: 600;
+    padding: 0.2rem 0.6rem; border-radius: 6px;
+  }
+  .badge-destaque {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--grad);
+    color: #0a1a12; font-size: 0.7rem; font-weight: 700;
+    padding: 0.2rem 0.7rem; border-radius: 6px;
+  }
+  .product-info { padding: 1rem 1.1rem 1.2rem; }
+  .product-store {
+    font-size: 0.72rem; color: var(--text-muted);
+    margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.3rem;
+  }
+  .product-store .dot { width: 5px; height: 5px; background: var(--verde); border-radius: 50%; }
+  .product-name { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.6rem; line-height: 1.3; }
+  .product-pricing { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.75rem; }
+  .price-old { font-size: 0.8rem; color: var(--text-muted); text-decoration: line-through; }
+  .price-new {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem; font-weight: 700;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .price-off {
+    background: rgba(0,229,160,0.12);
+    color: var(--verde);
+    font-size: 0.72rem; font-weight: 600;
+    padding: 0.15rem 0.5rem; border-radius: 5px;
+  }
+  .product-footer { display: flex; gap: 0.5rem; }
+  .btn-comprar {
+    flex: 1; background: var(--grad);
+    border: none; color: #0a1a12;
+    padding: 0.55rem 0; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-comprar:hover { opacity: 0.9; }
+  .btn-oferta {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.55rem 0.75rem; border-radius: 8px;
+    font-size: 0.82rem; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-oferta:hover { border-color: var(--azul); color: var(--azul); }
+
+  /* HOW IT WORKS */
+  .hiw-bg { background: var(--bg2); }
+  .hiw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem;
+  }
+  .hiw-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .hiw-card:hover { border-color: rgba(0,229,160,0.3); }
+  .hiw-num {
+    position: absolute; top: -10px; right: 1rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 5rem; font-weight: 800;
+    color: rgba(255,255,255,0.03);
+    line-height: 1;
+  }
+  .hiw-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,170,255,0.1));
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+  }
+  .hiw-title { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hiw-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* OFFER MODAL DEMO */
+  .oferta-demo {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .oferta-demo h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 1.5rem; }
+  .oferta-row { display: flex; justify-content: space-between; margin-bottom: 0.9rem; align-items: center; }
+  .oferta-label { font-size: 0.85rem; color: var(--text-muted); }
+  .oferta-val { font-size: 0.9rem; font-weight: 500; }
+  .oferta-input-wrap {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    margin: 1rem 0;
+    transition: border-color 0.2s;
+  }
+  .oferta-input-wrap:focus-within { border-color: var(--azul); }
+  .oferta-input-wrap span { color: var(--verde); font-weight: 600; }
+  .oferta-input-wrap input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-size: 1.1rem;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    width: 100%;
+  }
+  .oferta-hint { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 1rem; }
+
+  /* VENDORS */
+  .vendors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .vendor-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.4rem;
+    display: flex; gap: 1rem; align-items: center;
+    transition: border-color 0.2s;
+  }
+  .vendor-card:hover { border-color: rgba(0,170,255,0.4); }
+  .vendor-logo {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+  }
+  .vendor-info { flex: 1; min-width: 0; }
+  .vendor-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+  .vendor-city { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+  .vendor-stats { display: flex; gap: 0.75rem; }
+  .vendor-stat { font-size: 0.75rem; color: var(--text-muted); }
+  .vendor-stat strong { color: var(--verde); font-weight: 600; }
+
+  /* CTA FINAL */
+  .cta-section {
+    background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,170,255,0.08));
+    border: 1px solid rgba(0,229,160,0.15);
+    border-radius: 24px;
+    padding: 4rem;
+    text-align: center;
+    margin: 0 5% 5rem;
+  }
+  .cta-section h2 { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,3vw,2.8rem); font-weight: 800; margin-bottom: 1rem; }
+  .cta-section p { color: var(--text-muted); margin-bottom: 2rem; }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* FOOTER */
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 3rem 5% 2rem;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem; margin-bottom: 3rem;
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem; font-weight: 800;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.75rem;
+  }
+  .footer-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; max-width: 260px; }
+  .footer-col h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
+  .footer-col a { display: block; color: var(--text-muted); font-size: 0.82rem; text-decoration: none; margin-bottom: 0.5rem; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--verde); }
+  .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; }
+  .footer-bottom p { font-size: 0.78rem; color: var(--text-muted); }
+  .footer-region {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.15);
+    border-radius: 100px; padding: 0.25rem 0.75rem;
+    font-size: 0.75rem; color: var(--verde);
+  }
+
+  /* TAGS */
+  .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .tag {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.78rem; color: var(--text-muted);
+    cursor: pointer; transition: border-color 0.2s, color 0.2s;
+  }
+  .tag:hover { border-color: var(--verde); color: var(--verde); }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .stats-bar { gap: 2rem; }
+    .cta-section { padding: 2.5rem 1.5rem; }
+    .hiw-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+function irParaProduto(){ window.location.href = 'produto.html'; }
+function irParaPainel(){ window.location.href = 'painel-vendedor.html'; }
+function irParaAdmin(){ window.location.href = 'admin.html'; }
+</script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo-nav">ZerouFood</div>
+  <div class="nav-links">
+    <a href="#">Início</a>
+    <a href="#">Produtos</a>
+    <a href="#">Vendedores</a>
+    <a href="#como-funciona">Como funciona</a>
+  </div>
+  <div style="flex:1; max-width:380px; margin: 0 2rem; display:flex;">
+    <div class="search-bar">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Buscar produtos próximos à validade...">
+    </div>
+  </div>
+  <div class="nav-right">
+    <a href="painel-vendedor.html" class="btn-ghost">Entrar</a>
+    <a href="painel-vendedor.html" class="btn-grad">Cadastrar loja</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-badge"><span></span> Agora no Paraná e Santa Catarina</div>
+  <h1>Zere o estoque.<br><span class="grad-text">Salve alimentos.</span></h1>
+  <p>Conectamos comércios com estoque próximo da validade a compradores que fazem boas compras — e ainda podem fazer uma contra-oferta.</p>
+  <div class="hero-ctas">
+    <a href="#produtos" class="btn-grad btn-big">Ver ofertas agora</a>
+    <a href="#como-funciona" class="btn-ghost btn-big">Como funciona</a>
+  </div>
+  <div class="tag-row" style="justify-content:center;margin-top:2rem;">
+    <span class="tag">🥩 Carnes</span>
+    <span class="tag">🧀 Laticínios</span>
+    <span class="tag">🍞 Padaria</span>
+    <span class="tag">🥦 Hortifrúti</span>
+    <span class="tag">🥫 Conservas</span>
+    <span class="tag">🍫 Doces</span>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">1.200+</div><div class="stat-label">Produtos salvos do desperdício</div></div>
+  <div class="stat"><div class="stat-num">340</div><div class="stat-label">Lojas cadastradas</div></div>
+  <div class="stat"><div class="stat-num">62%</div><div class="stat-label">Desconto médio</div></div>
+  <div class="stat"><div class="stat-num">8.900</div><div class="stat-label">Compradores ativos</div></div>
+</div>
+
+<!-- CATEGORIES -->
+<section>
+  <div class="section-label">Explorar</div>
+  <div class="section-title">Categorias em destaque</div>
+  <div class="categories-grid">
+    <a href="#" class="cat-card"><div class="cat-emoji">🥩</div><div class="cat-name">Carnes</div><div class="cat-count">142 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🧀</div><div class="cat-name">Laticínios</div><div class="cat-count">87 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🍞</div><div class="cat-name">Padaria</div><div class="cat-count">213 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🥦</div><div class="cat-name">Hortifrúti</div><div class="cat-count">96 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🥫</div><div class="cat-name">Conservas</div><div class="cat-count">54 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🍫</div><div class="cat-name">Doces</div><div class="cat-count">119 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🥤</div><div class="cat-name">Bebidas</div><div class="cat-count">78 ofertas</div></a>
+    <a href="#" class="cat-card"><div class="cat-emoji">🍝</div><div class="cat-name">Massas</div><div class="cat-count">63 ofertas</div></a>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="produtos">
+  <div class="products-header">
+    <div>
+      <div class="section-label">Urgente</div>
+      <div class="section-title">Vencem em breve — aproveite</div>
+    </div>
+    <a href="#produtos" class="btn-ghost">Ver todos</a>
+  </div>
+  <div class="products-grid">
+
+    <div class="product-card">
+      <div class="product-img bg1">
+        🥩
+        <span class="badge-validade">Vence em 2 dias</span>
+        <span class="badge-destaque">⚡ Destaque</span>
+      </div>
+      <div class="product-info">
+        <div class="product-store"><span class="dot"></span> Açougue Bom Corte · Curitiba</div>
+        <div class="product-name">Picanha bovina premium — 1kg</div>
+        <div class="product-pricing">
+          <span class="price-old">R$ 89,90</span>
+          <span class="price-new">R$ 39,90</span>
+          <span class="price-off">-56%</span>
+        </div>
+        <div class="product-footer">
+          <button class="btn-comprar" onclick="window.location.href='produto.html'">Comprar agora</button>
+          <button class="btn-oferta" title="Fazer contra-oferta">💬</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img bg2">🧀<span class="badge-validade">Vence em 3 dias</span></div>
+      <div class="product-info">
+        <div class="product-store"><span class="dot"></span> Laticínios Serrano · Joinville</div>
+        <div class="product-name">Kit queijo minas e muçarela — 500g</div>
+        <div class="product-pricing">
+          <span class="price-old">R$ 34,00</span>
+          <span class="price-new">R$ 14,90</span>
+          <span class="price-off">-56%</span>
+        </div>
+        <div class="product-footer">
+          <button class="btn-comprar" onclick="window.location.href='produto.html'">Comprar agora</button>
+          <button class="btn-oferta" onclick="window.location.href=\'produto.html\'">💬</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img bg3">🍫<span class="badge-validade">Vence em 5 dias</span></div>
+      <div class="product-info">
+        <div class="product-store"><span class="dot"></span> Doces do Sul · Florianópolis</div>
+        <div class="product-name">Caixa de bombons sortidos — 400g</div>
+        <div class="product-pricing">
+          <span class="price-old">R$ 42,00</span>
+          <span class="price-new">R$ 19,90</span>
+          <span class="price-off">-53%</span>
+        </div>
+        <div class="product-footer">
+          <button class="btn-comprar" onclick="window.location.href='produto.html'">Comprar agora</button>
+          <button class="btn-oferta" onclick="window.location.href=\'produto.html\'">💬</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img bg4">🍞<span class="badge-validade">Vence em 1 dia</span></div>
+      <div class="product-info">
+        <div class="product-store"><span class="dot"></span> Padaria Grão & Arte · Maringá</div>
+        <div class="product-name">Pão de forma integral — 500g</div>
+        <div class="product-pricing">
+          <span class="price-old">R$ 12,90</span>
+          <span class="price-new">R$ 4,90</span>
+          <span class="price-off">-62%</span>
+        </div>
+        <div class="product-footer">
+          <button class="btn-comprar" onclick="window.location.href='produto.html'">Comprar agora</button>
+          <button class="btn-oferta" onclick="window.location.href=\'produto.html\'">💬</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="hiw-bg" id="como-funciona">
+  <div class="section-label">Simples assim</div>
+  <div class="section-title">Como o ZerouFood funciona</div>
+  <p class="section-sub">Em três passos simples, comércios vendem o que ia perder e compradores ganham descontos reais.</p>
+  <div class="hiw-grid">
+    <div class="hiw-card">
+      <div class="hiw-num">1</div>
+      <div class="hiw-icon">🏪</div>
+      <div class="hiw-title">Loja cadastra o produto</div>
+      <div class="hiw-desc">O comércio publica itens próximos à validade com preço reduzido. Simples, rápido e sem taxas de cadastro.</div>
+    </div>
+    <div class="hiw-card">
+      <div class="hiw-num">2</div>
+      <div class="hiw-icon">🔍</div>
+      <div class="hiw-title">Comprador encontra e negocia</div>
+      <div class="hiw-desc">Você busca pelo produto ou categoria, compra direto ou faz uma contra-oferta — como num leilão.</div>
+    </div>
+    <div class="hiw-card">
+      <div class="hiw-num">3</div>
+      <div class="hiw-icon">✅</div>
+      <div class="hiw-title">Loja aceita e fecha</div>
+      <div class="hiw-desc">O vendedor aceita ou recusa a oferta. Negócio fechado, alimento salvo, dinheiro economizado.</div>
+    </div>
+    <div class="hiw-card">
+      <div class="hiw-num">4</div>
+      <div class="hiw-icon">🌱</div>
+      <div class="hiw-title">Menos desperdício no Sul</div>
+      <div class="hiw-desc">Cada compra evita que um alimento bom vá ao lixo. PR e SC mais sustentáveis, um produto de cada vez.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTRA OFERTA DEMO -->
+<section>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;max-width:900px;margin:0 auto;" class="oferta-section">
+    <div>
+      <div class="section-label">Diferencial</div>
+      <div class="section-title">Faça sua contra-oferta</div>
+      <p class="section-sub">Não achou o preço justo? Manda sua proposta. O vendedor pode aceitar, recusar ou negociar. Você no controle.</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:0.75rem;">
+        <li style="display:flex;gap:0.75rem;align-items:center;font-size:0.9rem;">
+          <span style="width:22px;height:22px;background:rgba(0,229,160,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.7rem;color:var(--verde);">✓</span>
+          Proposta enviada em segundos
+        </li>
+        <li style="display:flex;gap:0.75rem;align-items:center;font-size:0.9rem;">
+          <span style="width:22px;height:22px;background:rgba(0,229,160,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.7rem;color:var(--verde);">✓</span>
+          Vendedor responde em até 2h
+        </li>
+        <li style="display:flex;gap:0.75rem;align-items:center;font-size:0.9rem;">
+          <span style="width:22px;height:22px;background:rgba(0,229,160,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.7rem;color:var(--verde);">✓</span>
+          Sem compromisso até confirmar
+        </li>
+      </ul>
+    </div>
+    <div class="oferta-demo">
+      <h3>💬 Sua contra-oferta</h3>
+      <div class="oferta-row">
+        <span class="oferta-label">Produto</span>
+        <span class="oferta-val">Picanha bovina 1kg</span>
+      </div>
+      <div class="oferta-row">
+        <span class="oferta-label">Preço pedido</span>
+        <span class="oferta-val" style="text-decoration:line-through;color:var(--text-muted);">R$ 39,90</span>
+      </div>
+      <div class="oferta-row">
+        <span class="oferta-label">Validade</span>
+        <span class="oferta-val" style="color:#ff6432;">2 dias</span>
+      </div>
+      <div class="oferta-input-wrap">
+        <span>R$</span>
+        <input type="number" value="29" min="1">
+      </div>
+      <p class="oferta-hint">💡 Sugestão: ofereça entre R$ 25 e R$ 35 para ter mais chance de aceite</p>
+      <button class="btn-grad" style="width:100%;padding:0.75rem;font-size:0.95rem;border-radius:10px;cursor:pointer;">Enviar proposta</button>
+    </div>
+  </div>
+</section>
+
+<!-- VENDORS -->
+<section>
+  <div class="products-header">
+    <div>
+      <div class="section-label">Parceiros</div>
+      <div class="section-title">Lojas cadastradas</div>
+    </div>
+    <a href="#" class="btn-ghost">Ver todas</a>
+  </div>
+  <div class="vendors-grid">
+    <div class="vendor-card">
+      <div class="vendor-logo" style="background:rgba(0,229,160,0.1);">🥩</div>
+      <div class="vendor-info">
+        <div class="vendor-name">Açougue Bom Corte</div>
+        <div class="vendor-city">📍 Curitiba, PR</div>
+        <div class="vendor-stats">
+          <span class="vendor-stat"><strong>47</strong> ofertas ativas</span>
+          <span class="vendor-stat"><strong>4.8</strong> ⭐</span>
+        </div>
+      </div>
+    </div>
+    <div class="vendor-card">
+      <div class="vendor-logo" style="background:rgba(0,170,255,0.1);">🧀</div>
+      <div class="vendor-info">
+        <div class="vendor-name">Laticínios Serrano</div>
+        <div class="vendor-city">📍 Joinville, SC</div>
+        <div class="vendor-stats">
+          <span class="vendor-stat"><strong>23</strong> ofertas ativas</span>
+          <span class="vendor-stat"><strong>4.9</strong> ⭐</span>
+        </div>
+      </div>
+    </div>
+    <div class="vendor-card">
+      <div class="vendor-logo" style="background:rgba(255,180,50,0.1);">🍞</div>
+      <div class="vendor-info">
+        <div class="vendor-name">Padaria Grão & Arte</div>
+        <div class="vendor-city">📍 Maringá, PR</div>
+        <div class="vendor-stats">
+          <span class="vendor-stat"><strong>31</strong> ofertas ativas</span>
+          <span class="vendor-stat"><strong>4.7</strong> ⭐</span>
+        </div>
+      </div>
+    </div>
+    <div class="vendor-card">
+      <div class="vendor-logo" style="background:rgba(200,100,200,0.1);">🍫</div>
+      <div class="vendor-info">
+        <div class="vendor-name">Doces do Sul</div>
+        <div class="vendor-city">📍 Florianópolis, SC</div>
+        <div class="vendor-stats">
+          <span class="vendor-stat"><strong>18</strong> ofertas ativas</span>
+          <span class="vendor-stat"><strong>5.0</strong> ⭐</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Tem um comércio?<br><span class="grad-text">Cadastre sua loja grátis.</span></h2>
+  <p>Zere seu estoque, evite perdas e ainda apareça em destaque para milhares de compradores no Sul do Brasil.</p>
+  <div class="cta-btns">
+    <a href="painel-vendedor.html" class="btn-grad btn-big">Cadastrar minha loja</a>
+    <a href="mailto:contato@zeroufood.com.br" class="btn-ghost btn-big">Falar com a equipe</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo">ZerouFood</div>
+      <p class="footer-desc">Marketplace de alimentos próximos à validade. Zere o estoque, compre barato, salve alimentos.</p>
+      <div class="footer-region" style="margin-top:1rem;">🗺️ Paraná & Santa Catarina</div>
+    </div>
+    <div class="footer-col">
+      <h4>Para compradores</h4>
+      <a href="#produtos">Ver ofertas</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="painel-vendedor.html">Criar conta</a>
+      <a href="produto.html">Favoritos</a>
+    </div>
+    <div class="footer-col">
+      <h4>Para vendedores</h4>
+      <a href="painel-vendedor.html">Cadastrar loja</a>
+      <a href="#">Planos</a>
+      <a href="#">Destaque pago</a>
+      <a href="painel-vendedor.html">Central do vendedor</a>
+    </div>
+    <div class="footer-col">
+      <h4>ZerouFood</h4>
+      <a href="#">Sobre nós</a>
+      <a href="#">Sustentabilidade</a>
+      <a href="#">Contato</a>
+      <a href="#">Termos de uso</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 ZerouFood. Todos os direitos reservados.</p>
+    <p style="color:var(--text-muted);font-size:0.75rem;">Zere seu estoque · Compre barato · Salve alimentos</p>
+  </div>
+</footer>
+
+
+<div class="quick-links-zf">
+  <a href="painel-vendedor.html">Painel vendedor</a>
+  <a href="admin.html">Admin</a>
+</div>
+<style>
+.quick-links-zf{
+  position:fixed;right:16px;bottom:16px;z-index:9999;
+  display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;
+}
+.quick-links-zf a{
+  background:linear-gradient(90deg,#00E5A0,#00AAFF);
+  color:#071a0f;text-decoration:none;font-weight:700;
+  padding:.65rem .9rem;border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;
+  box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+</style>
+
+</body>
+</html>
