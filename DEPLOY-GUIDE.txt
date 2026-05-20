@@ -1,0 +1,25 @@
+
+# ZerouFood Consolidado
+
+Esta é a versão consolidada oficial do MVP do ZerouFood.
+
+## Inclui
+- Marketplace
+- Página de produto
+- Painel do vendedor
+- Admin
+- Estrutura Supabase
+- Deploy preparado
+
+## Próximo passo
+Conectar:
+- autenticação real;
+- banco Supabase;
+- upload real de imagens;
+- pedidos reais.
+
+## Deploy
+Recomendado:
+- GitHub
+- Vercel
+- Supabase
