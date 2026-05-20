@@ -1,9 +1,14 @@
-// ZerouFood — Integração inicial Supabase
+// ZerouFood — Integração Supabase V3
+
+async function zfGetSession() {
+  const { data, error } = await zeroufoodSupabase.auth.getSession();
+  if (error) return null;
+  return data?.session || null;
+}
 
 async function zfGetCurrentUser() {
-  const { data, error } = await zeroufoodSupabase.auth.getUser();
-  if (error) return null;
-  return data?.user || null;
+  const session = await zfGetSession();
+  return session?.user || null;
 }
 
 async function zfLogin(email, password) {
@@ -13,11 +18,15 @@ async function zfLogin(email, password) {
 }
 
 async function zfSignup(email, password, name, role = "seller") {
-  const { data, error } = await zeroufoodSupabase.auth.signUp({ email, password, options: { data: { name, role } } });
+  const { data, error } = await zeroufoodSupabase.auth.signUp({
+    email,
+    password,
+    options: { data: { name, role } }
+  });
   if (error) throw error;
 
   if (data?.user) {
-    await zeroufoodSupabase.from("profiles").insert({
+    await zeroufoodSupabase.from("profiles").upsert({
       id: data.user.id,
       name,
       email,
@@ -32,13 +41,106 @@ async function zfLogout() {
   window.location.href = "index.html";
 }
 
+async function zfGetProfile(userId) {
+  const { data, error } = await zeroufoodSupabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("Perfil não encontrado:", error.message);
+    return null;
+  }
+  return data;
+}
+
+async function zfEnsureProfile(user) {
+  if (!user) return null;
+  let profile = await zfGetProfile(user.id);
+  if (profile) return profile;
+
+  const name = user.user_metadata?.name || user.email || "Vendedor ZerouFood";
+  const role = user.user_metadata?.role || "seller";
+
+  const { data, error } = await zeroufoodSupabase
+    .from("profiles")
+    .upsert({
+      id: user.id,
+      name,
+      email: user.email,
+      role
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.warn("Erro ao criar perfil:", error.message);
+    return null;
+  }
+  return data;
+}
+
+async function zfRequireAuth() {
+  const session = await zfGetSession();
+  if (!session?.user) {
+    const redirectTo = encodeURIComponent(window.location.pathname.split("/").pop() || "painel-vendedor.html");
+    window.location.href = `login.html?redirect=${redirectTo}`;
+    return null;
+  }
+
+  const profile = await zfEnsureProfile(session.user);
+  return { session, user: session.user, profile };
+}
+
+async function zfGetMyStore(user, profile) {
+  if (!user) throw new Error("Usuário não logado.");
+
+  let { data: store, error } = await zeroufoodSupabase
+    .from("stores")
+    .select("*")
+    .eq("owner_id", user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (store) return store;
+
+  const storeName =
+    profile?.name ||
+    user.user_metadata?.name ||
+    "Minha loja ZerouFood";
+
+  const { data: newStore, error: createError } = await zeroufoodSupabase
+    .from("stores")
+    .insert({
+      owner_id: user.id,
+      name: storeName,
+      city: "Cidade não informada",
+      status: "approved"
+    })
+    .select()
+    .single();
+
+  if (createError) throw createError;
+  return newStore;
+}
+
 async function zfUploadProductImage(file, productId) {
-  const safeName = `${Date.now()}-${file.name}`.replaceAll(" ", "-");
-  const path = `${productId}/${safeName}`;
+  if (!file) return null;
+
+  const cleanName = file.name
+    .normalize("NFD")
+    .replace(/[^\w.\-]+/g, "-")
+    .replace(/-+/g, "-");
+
+  const path = `${productId}/${Date.now()}-${cleanName}`;
 
   const { error } = await zeroufoodSupabase.storage
     .from("product-images")
-    .upload(path, file, { upsert: true });
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: true
+    });
 
   if (error) throw error;
 
@@ -49,42 +151,59 @@ async function zfUploadProductImage(file, productId) {
   return data.publicUrl;
 }
 
-async function zfCreateProduct(product) {
-  const { data, error } = await zeroufoodSupabase
+async function zfCreateProductWithImage(payload, file) {
+  const auth = await zfRequireAuth();
+  if (!auth) return null;
+
+  const store = await zfGetMyStore(auth.user, auth.profile);
+
+  const { data: product, error } = await zeroufoodSupabase
     .from("products")
-    .insert(product)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-async function zfSaveProductImage(productId, imageUrl, position = 0) {
-  const { data, error } = await zeroufoodSupabase
-    .from("product_images")
     .insert({
-      product_id: productId,
-      image_url: imageUrl,
-      position
+      store_id: store.id,
+      name: payload.name,
+      description: payload.description || "",
+      category: payload.category || "Outros",
+      original_price: payload.original_price || null,
+      sale_price: payload.sale_price,
+      quantity: payload.quantity || 1,
+      expiry_date: payload.expiry_date || null,
+      status: "active"
     })
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+
+  if (file) {
+    const imageUrl = await zfUploadProductImage(file, product.id);
+    if (imageUrl) {
+      const { error: imageError } = await zeroufoodSupabase
+        .from("product_images")
+        .insert({
+          product_id: product.id,
+          image_url: imageUrl,
+          position: 0
+        });
+
+      if (imageError) throw imageError;
+    }
+  }
+
+  return product;
 }
 
-async function zfLoadProducts() {
+async function zfLoadProducts(limit = 24) {
   const { data, error } = await zeroufoodSupabase
     .from("products")
     .select(`
       *,
-      stores(name, city),
+      stores(id, name, city),
       product_images(image_url, position)
     `)
     .eq("status", "active")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) {
     console.error("Erro ao carregar produtos:", error);
@@ -94,77 +213,54 @@ async function zfLoadProducts() {
   return data || [];
 }
 
-async function zfCreateOffer(productId, buyerId, sellerId, amount, message = "") {
+async function zfLoadProductById(productId) {
   const { data, error } = await zeroufoodSupabase
-    .from("offers")
-    .insert({
-      product_id: productId,
-      buyer_id: buyerId,
-      seller_id: sellerId,
-      amount,
-      message,
-      status: "sent"
-    })
-    .select()
-    .single();
+    .from("products")
+    .select(`
+      *,
+      stores(id, name, city),
+      product_images(image_url, position)
+    `)
+    .eq("id", productId)
+    .maybeSingle();
 
   if (error) throw error;
   return data;
 }
 
-async function zfCreateOrder(productId, buyerId, sellerId, amount, paymentMethod) {
+async function zfLoadMyProducts() {
+  const auth = await zfRequireAuth();
+  if (!auth) return [];
+
+  const store = await zfGetMyStore(auth.user, auth.profile);
+
   const { data, error } = await zeroufoodSupabase
-    .from("orders")
-    .insert({
-      product_id: productId,
-      buyer_id: buyerId,
-      seller_id: sellerId,
-      amount,
-      payment_method: paymentMethod,
-      status: "pending"
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-
-
-// ===== ZerouFood Auth Real V2 =====
-
-async function zfGetSession() {
-  const { data, error } = await zeroufoodSupabase.auth.getSession();
-  if (error) return null;
-  return data?.session || null;
-}
-
-async function zfGetProfile(userId) {
-  const { data, error } = await zeroufoodSupabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+    .from("products")
+    .select(`
+      *,
+      product_images(image_url, position)
+    `)
+    .eq("store_id", store.id)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.warn("Perfil não encontrado:", error.message);
-    return null;
+    console.error("Erro ao carregar meus produtos:", error);
+    return [];
   }
-  return data;
+
+  return data || [];
 }
 
-async function zfRequireAuth(options = {}) {
-  const session = await zfGetSession();
+function zfMoney(value) {
+  const number = Number(value || 0);
+  return number.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
-  if (!session?.user) {
-    const redirectTo = encodeURIComponent(window.location.pathname.split("/").pop() || "painel-vendedor.html");
-    window.location.href = `login.html?redirect=${redirectTo}`;
-    return null;
-  }
-
-  const profile = await zfGetProfile(session.user.id);
-  return { session, user: session.user, profile };
+function zfFirstImage(product) {
+  const images = product?.product_images || [];
+  if (!images.length) return null;
+  const sorted = [...images].sort((a, b) => (a.position || 0) - (b.position || 0));
+  return sorted[0]?.image_url || null;
 }
 
 async function zfRenderLoggedUser() {
@@ -172,7 +268,7 @@ async function zfRenderLoggedUser() {
   const user = session?.user || null;
 
   let profile = null;
-  if (user) profile = await zfGetProfile(user.id);
+  if (user) profile = await zfEnsureProfile(user);
 
   const displayName =
     profile?.name ||
@@ -182,15 +278,15 @@ async function zfRenderLoggedUser() {
 
   const displayEmail = user?.email || "";
 
-  document.querySelectorAll("[data-zf-user-name]").forEach((el) => {
+  document.querySelectorAll("[data-zf-user-name], .zf-user-name").forEach((el) => {
     el.textContent = displayName;
   });
 
-  document.querySelectorAll("[data-zf-user-email]").forEach((el) => {
+  document.querySelectorAll("[data-zf-user-email], .zf-user-email").forEach((el) => {
     el.textContent = displayEmail;
   });
 
-  document.querySelectorAll("[data-zf-user-initials]").forEach((el) => {
+  document.querySelectorAll("[data-zf-user-initials], .zf-user-initials").forEach((el) => {
     const initials = displayName
       .split(" ")
       .filter(Boolean)
