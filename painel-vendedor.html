@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZerouFood – Painel do Vendedor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#00E5A0;--azul:#00AAFF;--vermelho:#FF4D4D;--amarelo:#FFB800;--bg:#161927;--bg2:#1E2235;--bg3:#252A40;--bg4:#2C3150;--text:#EEF2FF;--text-muted:#7A85A8;--text-dim:#4A5270;--border:rgba(255,255,255,0.06);--grad:linear-gradient(90deg,#00E5A0,#00AAFF);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:240px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sidebar-logo{padding:1.5rem 1.4rem 1.2rem;border-bottom:1px solid var(--border);}
+.logo-text{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:0.68rem;color:var(--text-muted);margin-top:0.1rem;}
+.sidebar-store{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}
+.store-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(0,229,160,0.2),rgba(0,170,255,0.15));display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:1px solid rgba(0,229,160,0.2);}
+.store-name{font-size:0.85rem;font-weight:600;}.store-plan{font-size:0.65rem;background:rgba(0,229,160,0.12);color:var(--verde);border:1px solid rgba(0,229,160,0.2);border-radius:4px;padding:0.1rem 0.4rem;margin-top:0.2rem;display:inline-block;}
+.nav{flex:1;padding:1rem 0;overflow-y:auto;}
+.nav-section{font-size:0.65rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);padding:0.5rem 1.4rem;margin-top:0.5rem;}
+.nav-item{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1.4rem;font-size:0.875rem;color:var(--text-muted);cursor:pointer;transition:all 0.15s;border-left:2px solid transparent;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.03);color:var(--text);}.nav-item.active{background:rgba(0,229,160,0.06);color:var(--verde);border-left-color:var(--verde);}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--vermelho);color:#fff;font-size:0.65rem;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.nav-badge.green{background:var(--verde);color:#0a1a12;}
+.sidebar-bottom{padding:1rem 1.2rem;border-top:1px solid var(--border);}
+.user-row{display:flex;align-items:center;gap:0.75rem;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-muted);}
+.user-name{font-size:0.82rem;font-weight:500;}.user-role{font-size:0.7rem;color:var(--text-muted);}
+.btn-logout{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;transition:color 0.2s;padding:4px;}
+.btn-logout:hover{color:var(--vermelho);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:60px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;}
+.topbar-title{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:1rem;}
+.btn-sm{padding:0.45rem 1rem;border-radius:8px;font-size:0.82rem;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text-muted);}
+.btn-outline:hover{border-color:var(--verde);color:var(--verde);}
+.btn-primary{background:var(--grad);border:none;color:#071a0f;font-weight:600;}
+.btn-primary:hover{opacity:0.88;transform:translateY(-1px);}
+.notif-btn{position:relative;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;}
+.notif-dot{position:absolute;top:0;right:0;width:8px;height:8px;background:var(--vermelho);border-radius:50%;border:2px solid var(--bg2);}
+.content{flex:1;overflow-y:auto;padding:2rem;}
+.panel{display:none;}.panel.active{display:block;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.4rem;position:relative;overflow:hidden;transition:border-color 0.2s;}
+.stat-card:hover{border-color:rgba(0,229,160,0.2);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.green::before{background:var(--grad);}.stat-card.blue::before{background:linear-gradient(90deg,#00AAFF,#0066CC);}
+.stat-card.red::before{background:linear-gradient(90deg,#FF4D4D,#CC2200);}.stat-card.yellow::before{background:linear-gradient(90deg,#FFB800,#FF8C00);}
+.stat-label{font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem;}
+.stat-value{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;line-height:1;}
+.stat-value.green{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-value.blue{color:var(--azul);}.stat-value.red{color:var(--vermelho);}.stat-value.yellow{color:var(--amarelo);}
+.stat-change{font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;}.stat-change.up{color:#00C47A;}
+.stat-icon{position:absolute;bottom:1rem;right:1.2rem;font-size:2rem;opacity:0.12;}
+.two-col{display:grid;grid-template-columns:1fr 380px;gap:1.25rem;margin-bottom:1.25rem;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.card-header{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;}
+.card-body{padding:1.2rem 1.4rem;}
+.card-link{font-size:0.78rem;color:var(--verde);text-decoration:none;transition:opacity 0.2s;}
+.prod-table{width:100%;border-collapse:collapse;}
+.prod-table th{font-size:0.7rem;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-dim);padding:0 0.75rem 0.75rem;text-align:left;}
+.prod-table td{padding:0.85rem 0.75rem;border-top:1px solid var(--border);font-size:0.85rem;vertical-align:middle;}
+.prod-table tr:hover td{background:rgba(255,255,255,0.015);}
+.prod-info-cell{display:flex;align-items:center;gap:0.75rem;}
+.prod-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:1px solid var(--border);flex-shrink:0;overflow:hidden;}
+.prod-thumb img{width:40px;height:40px;object-fit:cover;}
+.prod-name{font-weight:500;font-size:0.88rem;}.prod-cat{font-size:0.72rem;color:var(--text-muted);}
+.badge{display:inline-flex;align-items:center;font-size:0.7rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:5px;white-space:nowrap;}
+.badge.ativo{background:rgba(0,229,160,0.1);color:var(--verde);border:1px solid rgba(0,229,160,0.2);}
+.badge.urgente{background:rgba(255,77,77,0.1);color:var(--vermelho);border:1px solid rgba(255,77,77,0.2);}
+.badge.pausado{background:rgba(122,133,168,0.1);color:var(--text-muted);border:1px solid var(--border);}
+.badge.oferta{background:rgba(0,170,255,0.1);color:var(--azul);border:1px solid rgba(0,170,255,0.2);}
+.prog-bar-wrap{width:80px;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.prog-bar{height:100%;border-radius:3px;background:var(--grad);}.prog-bar.red{background:linear-gradient(90deg,#FF4D4D,#FF8C00);}.prog-bar.yellow{background:linear-gradient(90deg,#FFB800,#FF6B00);}
+.action-btns{display:flex;gap:0.4rem;}
+.icon-btn{width:28px;height:28px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;transition:all 0.15s;}
+.icon-btn:hover{border-color:var(--verde);}.icon-btn.danger:hover{border-color:var(--vermelho);}
+.ofertas-list{display:flex;flex-direction:column;gap:0.75rem;}
+.oferta-item{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;transition:border-color 0.2s;}
+.oferta-item:hover{border-color:rgba(0,170,255,0.25);}
+.oferta-top{display:flex;justify-content:space-between;margin-bottom:0.6rem;}
+.oferta-prod{font-size:0.85rem;font-weight:500;}.oferta-time{font-size:0.7rem;color:var(--text-muted);}
+.oferta-prices{display:flex;align-items:baseline;gap:0.5rem;margin-bottom:0.75rem;}
+.oferta-asked{font-size:0.78rem;color:var(--text-muted);text-decoration:line-through;}
+.oferta-proposed{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;color:var(--azul);}
+.oferta-diff{font-size:0.72rem;background:rgba(0,170,255,0.1);color:var(--azul);padding:0.15rem 0.5rem;border-radius:4px;}
+.oferta-buyer{font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;}
+.oferta-actions{display:flex;gap:0.5rem;}
+.btn-accept{flex:1;background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.25);color:var(--verde);border-radius:8px;padding:0.45rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-accept:hover{background:rgba(0,229,160,0.2);}
+.btn-reject{flex:1;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.15);color:var(--vermelho);border-radius:8px;padding:0.45rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-reject:hover{background:rgba(255,77,77,0.15);}
+.btn-counter{background:rgba(0,170,255,0.08);border:1px solid rgba(0,170,255,0.15);color:var(--azul);border-radius:8px;padding:0.45rem 0.75rem;font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.chart-container{padding:1rem 1.4rem 1.4rem;}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:120px;}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.chart-bar{width:100%;border-radius:5px 5px 0 0;background:var(--bg4);cursor:pointer;}
+.chart-bar.grad{background:linear-gradient(180deg,rgba(0,229,160,0.7),rgba(0,170,255,0.4));}
+.chart-bar.hoje{background:var(--grad);}
+.chart-bar:hover{filter:brightness(1.2);}
+.chart-day{font-size:0.65rem;color:var(--text-dim);}
+.chart-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);margin-top:1rem;padding-top:0.8rem;}
+.chart-total-label{font-size:0.78rem;color:var(--text-muted);}
+.chart-total-val{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.alert{background:rgba(255,77,77,0.06);border:1px solid rgba(255,77,77,0.18);border-radius:12px;padding:1rem 1.2rem;display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:1.25rem;}
+.alert-text{font-size:0.83rem;}.alert-text strong{color:var(--vermelho);}
+.alert-link{color:var(--vermelho);text-decoration:underline;cursor:pointer;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-label{font-size:0.78rem;color:var(--text-muted);margin-bottom:0.4rem;display:block;}
+.form-label .req{color:var(--verde);}
+.form-label .hint{color:var(--text-dim);font-weight:400;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:0.65rem 1rem;color:var(--text);font-size:0.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--verde);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+.modal-footer{display:flex;gap:0.75rem;margin-top:1.5rem;}
+.btn-cancel{flex:1;background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:10px;padding:0.7rem;font-size:0.88rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.btn-cancel:hover{border-color:var(--text-muted);color:var(--text);}
+.btn-save{flex:2;background:var(--grad);border:none;color:#071a0f;border-radius:10px;padding:0.7rem;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-save:hover{opacity:0.88;}
+/* UPLOAD */
+.upload-area{border:2px dashed rgba(0,229,160,0.25);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,229,160,0.03);position:relative;}
+.upload-area:hover,.upload-area.dragover{border-color:var(--verde);background:rgba(0,229,160,0.07);}
+.upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:2rem;margin-bottom:0.5rem;}
+.upload-label{font-size:0.85rem;color:var(--text-muted);}
+.upload-label strong{color:var(--verde);}
+.upload-hint{font-size:0.72rem;color:var(--text-dim);margin-top:0.25rem;}
+.preview-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;margin-top:0.75rem;}
+.preview-item{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);}
+.preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.preview-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:0.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.preview-main-badge{position:absolute;bottom:3px;left:3px;background:var(--grad);color:#071a0f;font-size:0.55rem;font-weight:700;padding:2px 5px;border-radius:4px;}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.75rem;font-size:0.85rem;z-index:300;transform:translateY(80px);opacity:0;transition:all 0.3s ease;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.show{transform:translateY(0);opacity:1;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+.form-input option{background:var(--bg3);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="logo-text">ZerouFood</div><div class="logo-sub">Painel do Vendedor</div></div>
+  <div class="sidebar-store"><div class="store-avatar">🥩</div><div><div class="store-name">Açougue Bom Corte</div><div class="store-plan">⭐ Plano Pro</div></div></div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <a class="nav-item active" href="#" onclick="showTab('dashboard',this);return false;"><span class="icon">📊</span> Dashboard</a>
+    <a class="nav-item" href="#" onclick="showTab('produtos',this);return false;"><span class="icon">📦</span> Meus Produtos<span class="nav-badge green">12</span></a>
+    <a class="nav-item" href="#" onclick="showTab('ofertas',this);return false;"><span class="icon">💬</span> Contra-ofertas<span class="nav-badge">3</span></a>
+    <a class="nav-item" href="#" onclick="showTab('vendas',this);return false;"><span class="icon">💰</span> Vendas</a>
+    <div class="nav-section">Loja</div>
+    <a class="nav-item" href="#" onclick="showTab('perfil',this);return false;"><span class="icon">🏪</span> Perfil da Loja</a>
+    <a class="nav-item" href="#"><span class="icon">⭐</span> Avaliações</a>
+    <a class="nav-item" href="#"><span class="icon">📈</span> Destaque Pago</a>
+    <div class="nav-section">Conta</div>
+    <a class="nav-item" href="#"><span class="icon">⚙️</span> Configurações</a>
+    <a class="nav-item" href="#"><span class="icon">❓</span> Suporte</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="user-row"><div class="user-avatar">MR</div><div><div class="user-name">Marcos Rocha</div><div class="user-role">Administrador</div></div><button class="btn-logout">↩</button></div></div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <button class="notif-btn">🔔<span class="notif-dot"></span></button>
+      <button class="btn-sm btn-outline">📥 Relatório</button>
+      <button class="btn-sm btn-primary" onclick="openModal()">+ Novo Produto</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="alert">
+      <span style="font-size:1.1rem;flex-shrink:0;">⚠️</span>
+      <div class="alert-text"><strong>3 produtos vencem em menos de 48h.</strong> Reduza os preços para evitar perda. <span class="alert-link" onclick="showTab('produtos',document.querySelectorAll('.nav-item')[1])">Ver urgentes →</span></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-label">Faturamento este mês</div><div class="stat-value green">R$ 4.820</div><div class="stat-change up">↑ 18% vs mês anterior</div><div class="stat-icon">💰</div></div>
+        <div class="stat-card blue"><div class="stat-label">Produtos ativos</div><div class="stat-value blue">12</div><div class="stat-change">3 vencem em breve</div><div class="stat-icon">📦</div></div>
+        <div class="stat-card red"><div class="stat-label">Contra-ofertas pendentes</div><div class="stat-value red">3</div><div class="stat-change" style="color:var(--vermelho)">Responda em até 2h</div><div class="stat-icon">💬</div></div>
+        <div class="stat-card yellow"><div class="stat-label">Itens salvos do lixo</div><div class="stat-value yellow">284</div><div class="stat-change up">↑ 42 essa semana</div><div class="stat-icon">🌱</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Vendas — últimos 7 dias</span><a href="#" class="card-link">Ver histórico</a></div>
+          <div class="chart-container">
+            <div class="chart-bars">
+              <div class="chart-bar-wrap"><div class="chart-bar grad" style="height:55px"></div><span class="chart-day">Seg</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar grad" style="height:80px"></div><span class="chart-day">Ter</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar grad" style="height:40px"></div><span class="chart-day">Qua</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar grad" style="height:95px"></div><span class="chart-day">Qui</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar grad" style="height:70px"></div><span class="chart-day">Sex</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar grad" style="height:110px"></div><span class="chart-day">Sáb</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar hoje" style="height:62px"></div><span class="chart-day" style="color:var(--verde)">Hoje</span></div>
+            </div>
+            <div class="chart-total"><span class="chart-total-label">Total na semana</span><span class="chart-total-val">R$ 3.020</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Contra-ofertas pendentes</span><a href="#" class="card-link" onclick="showTab('ofertas',document.querySelectorAll('.nav-item')[2]);return false;">Ver todas</a></div>
+          <div class="card-body">
+            <div class="ofertas-list">
+              <div class="oferta-item"><div class="oferta-top"><span class="oferta-prod">🥩 Picanha bovina 1kg</span><span class="oferta-time">há 12 min</span></div><div class="oferta-prices"><span class="oferta-asked">R$ 39,90</span><span class="oferta-proposed">R$ 29,00</span><span class="oferta-diff">-27%</span></div><div class="oferta-buyer">👤 João P. · Curitiba</div><div class="oferta-actions"><button class="btn-accept" onclick="handleOferta(this,'aceita')">✓ Aceitar</button><button class="btn-reject" onclick="handleOferta(this,'recusada')">✕ Recusar</button><button class="btn-counter">↔</button></div></div>
+              <div class="oferta-item"><div class="oferta-top"><span class="oferta-prod">🧀 Kit queijo 500g</span><span class="oferta-time">há 1h</span></div><div class="oferta-prices"><span class="oferta-asked">R$ 14,90</span><span class="oferta-proposed">R$ 10,00</span><span class="oferta-diff">-33%</span></div><div class="oferta-buyer">👤 Ana S. · Pinhais</div><div class="oferta-actions"><button class="btn-accept" onclick="handleOferta(this,'aceita')">✓ Aceitar</button><button class="btn-reject" onclick="handleOferta(this,'recusada')">✕ Recusar</button><button class="btn-counter">↔</button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Produtos ativos</span><a href="#" class="card-link" onclick="showTab('produtos',document.querySelectorAll('.nav-item')[1]);return false;">Gerenciar todos</a></div>
+        <div style="overflow-x:auto;">
+          <table class="prod-table">
+            <thead><tr><th>Produto</th><th>Preço</th><th>Desconto</th><th>Validade</th><th>Estoque</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🥩</div><div><div class="prod-name">Picanha bovina premium</div><div class="prod-cat">Carnes · 1kg</div></div></div></td><td><strong>R$ 39,90</strong><br><span style="font-size:0.72rem;color:var(--text-muted);text-decoration:line-through">R$ 89,90</span></td><td><span class="badge ativo">-56%</span></td><td style="color:var(--vermelho);font-weight:500;font-size:0.82rem;">2 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar red" style="width:30%"></div></div><div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px">3 de 10</div></td><td><span class="badge urgente">⚡ Urgente</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">⏸</button></div></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🧀</div><div><div class="prod-name">Kit queijo minas e muçarela</div><div class="prod-cat">Laticínios · 500g</div></div></div></td><td><strong>R$ 14,90</strong><br><span style="font-size:0.72rem;color:var(--text-muted);text-decoration:line-through">R$ 34,00</span></td><td><span class="badge ativo">-56%</span></td><td style="color:var(--amarelo);font-weight:500;font-size:0.82rem;">3 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar yellow" style="width:55%"></div></div><div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px">11 de 20</div></td><td><span class="badge oferta">💬 Oferta</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">⏸</button></div></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🍖</div><div><div class="prod-name">Costela suína defumada</div><div class="prod-cat">Carnes · 800g</div></div></div></td><td><strong>R$ 24,90</strong><br><span style="font-size:0.72rem;color:var(--text-muted);text-decoration:line-through">R$ 52,00</span></td><td><span class="badge ativo">-52%</span></td><td style="font-size:0.82rem;">7 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar" style="width:80%"></div></div><div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px">16 de 20</div></td><td><span class="badge ativo">✓ Ativo</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">⏸</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUTOS -->
+    <div class="panel" id="panel-produtos">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Todos os produtos</span><button class="btn-sm btn-primary" onclick="openModal()">+ Adicionar produto</button></div>
+        <div style="overflow-x:auto;">
+          <table class="prod-table">
+            <thead><tr><th>Produto</th><th>Preço</th><th>Desconto</th><th>Validade</th><th>Estoque</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🥩</div><div><div class="prod-name">Picanha bovina premium</div><div class="prod-cat">Carnes · 1kg</div></div></div></td><td><strong>R$ 39,90</strong></td><td><span class="badge ativo">-56%</span></td><td style="color:var(--vermelho);font-size:0.82rem;">2 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar red" style="width:30%"></div></div></td><td><span class="badge urgente">⚡ Urgente</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">🗑</button></div></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🧀</div><div><div class="prod-name">Kit queijo minas e muçarela</div><div class="prod-cat">Laticínios · 500g</div></div></div></td><td><strong>R$ 14,90</strong></td><td><span class="badge ativo">-56%</span></td><td style="color:var(--amarelo);font-size:0.82rem;">3 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar yellow" style="width:55%"></div></div></td><td><span class="badge oferta">💬 Oferta</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">🗑</button></div></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🍖</div><div><div class="prod-name">Costela suína defumada</div><div class="prod-cat">Carnes · 800g</div></div></div></td><td><strong>R$ 24,90</strong></td><td><span class="badge ativo">-52%</span></td><td style="font-size:0.82rem;">7 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar" style="width:80%"></div></div></td><td><span class="badge ativo">✓ Ativo</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">🗑</button></div></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🥚</div><div><div class="prod-name">Ovos caipiras bandeja 30</div><div class="prod-cat">Ovos · Unidade</div></div></div></td><td><strong>R$ 18,90</strong></td><td><span class="badge ativo">-33%</span></td><td style="font-size:0.82rem;">10 dias</td><td><div class="prog-bar-wrap"><div class="prog-bar" style="width:40%"></div></div></td><td><span class="badge pausado">⏸ Pausado</span></td><td><div class="action-btns"><button class="icon-btn">✏️</button><button class="icon-btn danger">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTRA-OFERTAS -->
+    <div class="panel" id="panel-ofertas">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Contra-ofertas recebidas</span><span class="badge urgente">3 pendentes</span></div>
+          <div class="card-body">
+            <div class="ofertas-list">
+              <div class="oferta-item"><div class="oferta-top"><span class="oferta-prod">🥩 Picanha bovina 1kg</span><span class="oferta-time">há 12 min</span></div><div class="oferta-prices"><span class="oferta-asked">R$ 39,90</span><span class="oferta-proposed">R$ 29,00</span><span class="oferta-diff">-27%</span></div><div class="oferta-buyer">👤 João P. · Curitiba</div><div class="oferta-actions"><button class="btn-accept" onclick="handleOferta(this,'aceita')">✓ Aceitar</button><button class="btn-reject" onclick="handleOferta(this,'recusada')">✕ Recusar</button><button class="btn-counter">↔ Contra</button></div></div>
+              <div class="oferta-item"><div class="oferta-top"><span class="oferta-prod">🧀 Kit queijo 500g</span><span class="oferta-time">há 1h</span></div><div class="oferta-prices"><span class="oferta-asked">R$ 14,90</span><span class="oferta-proposed">R$ 10,00</span><span class="oferta-diff">-33%</span></div><div class="oferta-buyer">👤 Ana S. · Pinhais</div><div class="oferta-actions"><button class="btn-accept" onclick="handleOferta(this,'aceita')">✓ Aceitar</button><button class="btn-reject" onclick="handleOferta(this,'recusada')">✕ Recusar</button><button class="btn-counter">↔ Contra</button></div></div>
+              <div class="oferta-item"><div class="oferta-top"><span class="oferta-prod">🍖 Costela suína 800g</span><span class="oferta-time">há 3h</span></div><div class="oferta-prices"><span class="oferta-asked">R$ 24,90</span><span class="oferta-proposed">R$ 18,00</span><span class="oferta-diff">-28%</span></div><div class="oferta-buyer">👤 Pedro M. · Joinville</div><div class="oferta-actions"><button class="btn-accept" onclick="handleOferta(this,'aceita')">✓ Aceitar</button><button class="btn-reject" onclick="handleOferta(this,'recusada')">✕ Recusar</button><button class="btn-counter">↔ Contra</button></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Histórico de negociações</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:0.6rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.7rem;background:var(--bg3);border-radius:10px;"><div><div style="font-size:0.82rem;font-weight:500;">🥩 Picanha — R$ 35,00</div><div style="font-size:0.7rem;color:var(--text-muted);">Carlos F. · ontem</div></div><span class="badge ativo">Aceita</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.7rem;background:var(--bg3);border-radius:10px;"><div><div style="font-size:0.82rem;font-weight:500;">🧀 Queijo — R$ 8,00</div><div style="font-size:0.7rem;color:var(--text-muted);">Maria L. · ontem</div></div><span class="badge urgente">Recusada</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.7rem;background:var(--bg3);border-radius:10px;"><div><div style="font-size:0.82rem;font-weight:500;">🍖 Costela — R$ 22,00</div><div style="font-size:0.7rem;color:var(--text-muted);">Fábio R. · 2 dias</div></div><span class="badge ativo">Aceita</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VENDAS -->
+    <div class="panel" id="panel-vendas">
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-label">Faturamento total</div><div class="stat-value green">R$ 12.480</div><div class="stat-change up">↑ 24% este mês</div></div>
+        <div class="stat-card blue"><div class="stat-label">Vendas realizadas</div><div class="stat-value blue">284</div><div class="stat-change">desde o início</div></div>
+        <div class="stat-card yellow"><div class="stat-label">Ticket médio</div><div class="stat-value yellow">R$ 43,94</div><div class="stat-change up">↑ 8% vs anterior</div></div>
+        <div class="stat-card red"><div class="stat-label">Comissão ZerouFood</div><div class="stat-value red">R$ 623</div><div class="stat-change">5% por venda</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Histórico de vendas</span></div>
+        <div style="overflow-x:auto;">
+          <table class="prod-table">
+            <thead><tr><th>Produto</th><th>Comprador</th><th>Valor</th><th>Tipo</th><th>Data</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🥩</div><div class="prod-name">Picanha bovina 1kg</div></div></td><td style="font-size:0.82rem;">João P. · Curitiba</td><td><strong style="color:var(--verde)">R$ 35,00</strong></td><td><span class="badge oferta">Negociada</span></td><td style="font-size:0.78rem;color:var(--text-muted);">hoje, 09:14</td><td><span class="badge ativo">✓ Pago</span></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🍗</div><div class="prod-name">Frango inteiro 1,2kg</div></div></td><td style="font-size:0.82rem;">Lúcia M.</td><td><strong style="color:var(--verde)">R$ 15,90</strong></td><td><span class="badge ativo">Direto</span></td><td style="font-size:0.78rem;color:var(--text-muted);">ontem, 16:42</td><td><span class="badge ativo">✓ Pago</span></td></tr>
+              <tr><td><div class="prod-info-cell"><div class="prod-thumb">🧀</div><div class="prod-name">Kit queijo 500g</div></div></td><td style="font-size:0.82rem;">Ana S.</td><td><strong style="color:var(--verde)">R$ 14,90</strong></td><td><span class="badge ativo">Direto</span></td><td style="font-size:0.78rem;color:var(--text-muted);">ontem, 11:30</td><td><span class="badge ativo">✓ Pago</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="panel" id="panel-perfil">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Informações da loja</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Nome da loja</label><input class="form-input" value="Açougue Bom Corte"></div>
+            <div class="form-group"><label class="form-label">Descrição</label><textarea class="form-input" rows="3" style="resize:vertical;">Açougue tradicional em Curitiba com mais de 15 anos de mercado.</textarea></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">Cidade</label><input class="form-input" value="Curitiba"></div><div class="form-group"><label class="form-label">Estado</label><input class="form-input" value="PR"></div></div>
+            <div class="form-group"><label class="form-label">WhatsApp</label><input class="form-input" value="(41) 99999-0000"></div>
+            <button class="btn-sm btn-primary" style="width:100%;padding:0.7rem;margin-top:0.5rem;">Salvar alterações</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="card"><div class="card-header"><span class="card-title">Avaliação geral</span></div><div class="card-body" style="text-align:center;"><div style="font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">4.8</div><div style="font-size:1.3rem;margin:0.25rem 0;">⭐⭐⭐⭐⭐</div><div style="font-size:0.78rem;color:var(--text-muted);">Baseado em 127 avaliações</div></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">Plano atual</span></div><div class="card-body"><div style="background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,170,255,0.06));border:1px solid rgba(0,229,160,0.15);border-radius:12px;padding:1rem;text-align:center;"><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:0.3rem;">⭐ Plano Pro</div><div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem;">Até 50 produtos · Destaque incluso</div><div style="font-size:1.4rem;font-weight:700;color:var(--verde);">R$ 49,90<span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">/mês</span></div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL COM UPLOAD DE FOTO -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>📦 Cadastrar novo produto</h3>
+
+    <div class="form-group">
+      <label class="form-label">Fotos do produto <span class="req">*</span> <span class="hint">(até 5 · JPG/PNG · máx 5MB cada)</span></label>
+      <div class="upload-area" id="upload-area" ondragover="dragOver(event)" ondragleave="dragLeave()" ondrop="dropFiles(event)">
+        <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp" multiple onchange="handleFiles(this.files)">
+        <div class="upload-icon">📷</div>
+        <div class="upload-label"><strong>Clique para escolher</strong> ou arraste as fotos aqui</div>
+        <div class="upload-hint">A primeira foto será a imagem principal do anúncio</div>
+      </div>
+      <div class="preview-grid" id="preview-grid"></div>
+    </div>
+
+    <div class="form-group"><label class="form-label">Nome do produto <span class="req">*</span></label><input class="form-input" id="f-nome" placeholder="Ex: Picanha bovina premium 1kg"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-input"><option>🥩 Carnes</option><option>🧀 Laticínios</option><option>🍞 Padaria</option><option>🥦 Hortifrúti</option><option>🥫 Conservas</option><option>🍫 Doces</option><option>🥤 Bebidas</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Qtd. em estoque</label><input class="form-input" type="number" placeholder="10" min="1"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Preço original (R$) <span class="req">*</span></label><input class="form-input" type="number" placeholder="89,90" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Preço promocional (R$) <span class="req">*</span></label><input class="form-input" type="number" placeholder="39,90" step="0.01"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Data de validade <span class="req">*</span></label><input class="form-input" type="date"></div>
+    <div class="form-group"><label class="form-label">Aceitar contra-ofertas?</label>
+      <select class="form-input"><option>✅ Sim, aceito negociação</option><option>❌ Não, preço fixo</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição <span class="hint">(opcional)</span></label><textarea class="form-input" rows="2" style="resize:vertical;" placeholder="Detalhes do produto, peso exato, origem..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveProduct()">✓ Publicar produto</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon" style="font-size:1.1rem;"></span><span id="toast-msg"></span></div>
+
+<script>
+function showTab(tab,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const p=document.getElementById('panel-'+tab);if(p)p.classList.add('active');
+  if(el)el.classList.add('active');
+  const t={dashboard:'Dashboard',produtos:'Meus Produtos',ofertas:'Contra-ofertas',vendas:'Vendas',perfil:'Perfil da Loja'};
+  document.getElementById('page-title').textContent=t[tab]||'Painel';
+}
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');clearPreviews();}
+function showToast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
+}
+function handleOferta(btn,type){
+  const item=btn.closest('.oferta-item');
+  item.style.opacity='0.4';item.style.pointerEvents='none';
+  type==='aceita'?showToast('✅','Oferta aceita! Venda confirmada.'):showToast('❌','Oferta recusada. Comprador notificado.');
+}
+function saveProduct(){
+  const nome=document.getElementById('f-nome').value.trim();
+  if(!nome){showToast('⚠️','Preencha o nome do produto.');return;}
+  closeModal();showToast('✅','Produto publicado com sucesso!');
+}
+// UPLOAD
+let files=[];
+function handleFiles(fl){
+  const rem=5-files.length;
+  Array.from(fl).slice(0,rem).forEach(f=>{
+    if(!f.type.startsWith('image/')){showToast('⚠️','Apenas imagens são aceitas.');return;}
+    if(f.size>5*1024*1024){showToast('⚠️','Arquivo muito grande. Máx 5MB.');return;}
+    files.push(f);
+    const r=new FileReader();
+    const idx=files.length-1;
+    r.onload=e=>addPreview(e.target.result,idx);
+    r.readAsDataURL(f);
+  });
+  if(files.length>=5){
+    const ua=document.getElementById('upload-area');
+    ua.style.opacity='0.45';ua.style.pointerEvents='none';
+  }
+  document.getElementById('foto-input').value='';
+}
+function addPreview(src,idx){
+  const grid=document.getElementById('preview-grid');
+  const div=document.createElement('div');div.className='preview-item';div.id='prev-'+idx;
+  div.innerHTML=`<img src="${src}" alt="foto">`
+    +(idx===0?'<span class="preview-main-badge">Principal</span>':'')
+    +`<button class="preview-remove" onclick="removePreview(${idx})">✕</button>`;
+  grid.appendChild(div);
+}
+function removePreview(idx){
+  files.splice(idx,1);
+  document.getElementById('preview-grid').innerHTML='';
+  files.forEach((f,i)=>{const r=new FileReader();r.onload=e=>addPreview(e.target.result,i);r.readAsDataURL(f);});
+  const ua=document.getElementById('upload-area');ua.style.opacity='1';ua.style.pointerEvents='auto';
+}
+function clearPreviews(){files=[];document.getElementById('preview-grid').innerHTML='';const ua=document.getElementById('upload-area');ua.style.opacity='1';ua.style.pointerEvents='auto';}
+function dragOver(e){e.preventDefault();document.getElementById('upload-area').classList.add('dragover');}
+function dragLeave(){document.getElementById('upload-area').classList.remove('dragover');}
+function dropFiles(e){e.preventDefault();dragLeave();handleFiles(e.dataTransfer.files);}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="zeroufood-app.js"></script>
+</body>
+</html>
