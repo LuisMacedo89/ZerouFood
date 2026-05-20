@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZerouFood – Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#00E5A0;--azul:#00AAFF;--vermelho:#FF4D4D;--amarelo:#FFB800;--bg:#161927;--bg2:#1E2235;--bg3:#252A40;--text:#EEF2FF;--muted:#7A85A8;--border:rgba(255,255,255,.08);--grad:linear-gradient(90deg,#00E5A0,#00AAFF)}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{height:68px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5%}
+.logo{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+main{max-width:1180px;margin:0 auto;padding:2rem 5%}
+h1{font-family:'Syne',sans-serif;font-size:2rem;margin-bottom:.4rem}p{color:var(--muted);line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:1.5rem 0 2rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.2rem}
+.label{font-size:.75rem;color:var(--muted);margin-bottom:.5rem}.num{font-family:'Syne';font-size:1.8rem;font-weight:800}
+.num.green{color:var(--verde)}.num.blue{color:var(--azul)}.num.red{color:var(--vermelho)}.num.yellow{color:var(--amarelo)}
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:18px;margin-bottom:1.2rem;overflow:hidden}
+.section h2{font-family:'Syne';font-size:1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}th,td{padding:.85rem 1.2rem;text-align:left;border-bottom:1px solid var(--border);font-size:.88rem}
+th{font-size:.72rem;text-transform:uppercase;color:var(--muted);letter-spacing:.08em}
+.badge{display:inline-block;border-radius:999px;padding:.22rem .65rem;font-size:.72rem;font-weight:700}
+.ok{background:rgba(0,229,160,.12);color:var(--verde);border:1px solid rgba(0,229,160,.25)}
+.warn{background:rgba(255,184,0,.12);color:var(--amarelo);border:1px solid rgba(255,184,0,.25)}
+.danger{background:rgba(255,77,77,.12);color:var(--vermelho);border:1px solid rgba(255,77,77,.25)}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap}
+button,a.btn{border:1px solid var(--border);background:var(--bg3);color:var(--text);border-radius:9px;padding:.48rem .75rem;cursor:pointer;text-decoration:none;font-family:'DM Sans';font-size:.8rem}
+button:hover,a.btn:hover{border-color:var(--verde)}.primary{background:var(--grad);color:#071a0f;border:none;font-weight:700}
+.checklist{display:grid;gap:.7rem;padding:1.2rem}.item{display:flex;gap:.75rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:.9rem}
+.item strong{display:block}.item span{color:var(--muted);font-size:.82rem}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}table{display:block;overflow:auto}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ZerouFood Admin</div>
+  <a class="btn" href="index.html">Ver marketplace</a>
+</header>
+<main>
+  <h1>Painel administrativo</h1>
+  <p>Controle inicial para aprovar vendedores, moderar produtos e acompanhar pedidos antes da publicação real.</p>
+
+  <div class="grid">
+    <div class="card"><div class="label">Vendedores</div><div class="num green" id="storesCount">3</div></div>
+    <div class="card"><div class="label">Produtos ativos</div><div class="num blue" id="productsCount">12</div></div>
+    <div class="card"><div class="label">Pedidos</div><div class="num yellow" id="ordersCount">5</div></div>
+    <div class="card"><div class="label">Pendências</div><div class="num red" id="pendingCount">2</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Vendedores para aprovação</h2>
+    <table>
+      <thead><tr><th>Loja</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+        <tr><td>Mercado São Bento</td><td>São Paulo/SP</td><td><span class="badge warn">Pendente</span></td><td class="actions"><button class="primary">Aprovar</button><button>Ver dados</button></td></tr>
+        <tr><td>Padaria Bela Massa</td><td>Osasco/SP</td><td><span class="badge ok">Aprovado</span></td><td class="actions"><button>Suspender</button><button>Ver dados</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Produtos em moderação</h2>
+    <table>
+      <thead><tr><th>Produto</th><th>Vendedor</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+        <tr><td>Pães artesanais</td><td>Padaria Bela Massa</td><td>Hoje</td><td><span class="badge warn">Revisar foto</span></td><td class="actions"><button class="primary">Aprovar</button><button>Remover</button></td></tr>
+        <tr><td>Frutas selecionadas</td><td>Hortifruti Central</td><td>Amanhã</td><td><span class="badge ok">Publicado</span></td><td class="actions"><button>Pausar</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Checklist para colocar no ar</h2>
+    <div class="checklist">
+      <div class="item">✅ <div><strong>Domínio</strong><span>Comprar domínio, exemplo: zeroufood.com.br</span></div></div>
+      <div class="item">✅ <div><strong>Hospedagem</strong><span>Publicar frontend na Vercel ou Netlify.</span></div></div>
+      <div class="item">✅ <div><strong>Banco de dados</strong><span>Criar projeto no Supabase e rodar o schema SQL incluso.</span></div></div>
+      <div class="item">✅ <div><strong>Fotos</strong><span>Configurar bucket de imagens no Supabase Storage.</span></div></div>
+      <div class="item">✅ <div><strong>Segurança</strong><span>Ativar autenticação real, regras de acesso e moderação.</span></div></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
