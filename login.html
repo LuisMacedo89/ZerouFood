@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZerouFood — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#00E5A0;--azul:#00AAFF;--bg:#161927;--bg2:#1E2235;--bg3:#252A40;--text:#EEF2FF;--muted:#7A85A8;--border:rgba(255,255,255,.08);--grad:linear-gradient(90deg,#00E5A0,#00AAFF)}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:1rem}
+.card{width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:22px;padding:2rem;box-shadow:0 20px 70px rgba(0,0,0,.35)}
+.logo{font-family:'Syne';font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+p{color:var(--muted);line-height:1.5;margin-bottom:1.5rem}.tabs{display:flex;background:var(--bg3);border-radius:12px;padding:4px;margin-bottom:1rem}
+.tab{flex:1;border:none;background:transparent;color:var(--muted);padding:.65rem;border-radius:9px;cursor:pointer;font-weight:700}.tab.active{background:var(--bg2);color:var(--text)}
+label{display:block;font-size:.78rem;color:var(--muted);margin:.85rem 0 .35rem}input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:11px;color:var(--text);padding:.8rem;outline:none}
+input:focus{border-color:var(--verde)}button.primary{width:100%;margin-top:1.2rem;background:var(--grad);border:none;color:#071a0f;border-radius:12px;padding:.9rem;font-weight:800;cursor:pointer}
+.msg{font-size:.82rem;margin-top:1rem;color:var(--muted)}a{color:var(--verde)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ZerouFood</div>
+  <p>Entre ou crie uma conta de vendedor para começar a cadastrar produtos.</p>
+
+  <div class="tabs">
+    <button class="tab active" id="loginTab" onclick="setMode('login')">Entrar</button>
+    <button class="tab" id="signupTab" onclick="setMode('signup')">Cadastrar</button>
+  </div>
+
+  <form id="authForm">
+    <div id="nameWrap" style="display:none">
+      <label>Nome</label>
+      <input id="name" placeholder="Seu nome ou nome da loja">
+    </div>
+    <label>Email</label>
+    <input id="email" type="email" placeholder="voce@email.com" required>
+    <label>Senha</label>
+    <input id="password" type="password" placeholder="mínimo 6 caracteres" required>
+    <button class="primary" type="submit" id="submitBtn">Entrar</button>
+  </form>
+
+  <div class="msg" id="msg"></div>
+  <p style="margin-top:1rem;margin-bottom:0"><a href="index.html">Voltar para a Home</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="zeroufood-app.js"></script>
+<script>
+let mode = "login";
+function setMode(next){
+  mode = next;
+  document.getElementById("loginTab").classList.toggle("active", mode === "login");
+  document.getElementById("signupTab").classList.toggle("active", mode === "signup");
+  document.getElementById("nameWrap").style.display = mode === "signup" ? "block" : "none";
+  document.getElementById("submitBtn").textContent = mode === "signup" ? "Criar conta" : "Entrar";
+  document.getElementById("msg").textContent = "";
+}
+
+document.getElementById("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("msg");
+  msg.textContent = "Processando...";
+  try {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (mode === "signup") {
+      const name = document.getElementById("name").value || "Vendedor ZerouFood";
+      await zfSignup(email, password, name, "seller");
+      msg.textContent = "Cadastro criado. Se o Supabase pedir confirmação de email, confirme antes de entrar.";
+    } else {
+      await zfLogin(email, password);
+      
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get("redirect") || "painel-vendedor.html";
+      window.location.href = redirect;
+    
+    }
+  } catch (err) {
+    msg.textContent = "Erro: " + err.message;
+  }
+});
+</script>
+</body>
+</html>
