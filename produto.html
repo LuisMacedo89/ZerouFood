@@ -7,24 +7,88 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--verde:#00E5A0;--azul:#00AAFF;--vermelho:#FF4D4D;--bg:#1E2235;--bg2:#252A40;--bg3:#2C3150;--text:#EEF2FF;--muted:#7A85A8;--border:rgba(255,255,255,.07);--grad:linear-gradient(90deg,#00E5A0,#00AAFF)}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}nav{height:68px;background:rgba(30,34,53,.92);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0}.logo{font-family:'Syne';font-weight:800;font-size:1.4rem;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}.btn{border:1px solid var(--border);color:var(--text);text-decoration:none;border-radius:9px;padding:.55rem .9rem}.btn:hover{border-color:var(--verde)}
-main{max-width:1120px;margin:0 auto;padding:3rem 5%}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem}.photo{height:460px;background:var(--bg2);border:1px solid var(--border);border-radius:22px;display:grid;place-items:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover}.ph{font-size:6rem}.tag{display:inline-block;border:1px solid rgba(0,229,160,.25);background:rgba(0,229,160,.08);color:var(--verde);border-radius:999px;padding:.3rem .75rem;font-size:.78rem;margin-bottom:1rem}h1{font-family:'Syne';font-size:2.4rem;line-height:1.05;margin-bottom:.8rem}p{color:var(--muted);line-height:1.7}.store{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1rem;margin:1rem 0}.old{text-decoration:line-through;color:var(--muted);margin-top:1rem}.price{font-family:'Syne';font-size:3rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:.2rem 0 1rem}.actions{display:grid;gap:.75rem}.buy{background:var(--grad);color:#071a0f;border:none;border-radius:12px;padding:1rem;font-family:'Syne';font-weight:800;font-size:1rem;cursor:pointer}.outline{background:none;color:var(--azul);border:1px solid rgba(0,170,255,.4);border-radius:12px;padding:.9rem;font-weight:800;cursor:pointer}.details{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1.2rem}.detail{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.8rem}.label{font-size:.72rem;color:var(--muted);text-transform:uppercase}.value{font-weight:800;margin-top:.2rem}.empty{background:var(--bg2);border:1px dashed var(--border);border-radius:18px;padding:2rem;text-align:center;color:var(--muted)}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}nav{height:68px;background:rgba(30,34,53,.92);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:20}.logo{font-family:'Syne';font-weight:800;font-size:1.4rem;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}.btn{border:1px solid var(--border);color:var(--text);text-decoration:none;border-radius:9px;padding:.55rem .9rem;background:transparent;cursor:pointer}.btn:hover{border-color:var(--verde)}
+main{max-width:1120px;margin:0 auto;padding:3rem 5%}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem}.photo{height:460px;background:var(--bg2);border:1px solid var(--border);border-radius:22px;display:grid;place-items:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover}.ph{font-size:6rem}.tag{display:inline-block;border:1px solid rgba(0,229,160,.25);background:rgba(0,229,160,.08);color:var(--verde);border-radius:999px;padding:.3rem .75rem;font-size:.78rem;margin-bottom:1rem}h1{font-family:'Syne';font-size:2.4rem;line-height:1.05;margin-bottom:.8rem}p{color:var(--muted);line-height:1.7}.store{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1rem;margin:1rem 0}.old{text-decoration:line-through;color:var(--muted);margin-top:1rem}.price{font-family:'Syne';font-size:3rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:.2rem 0 1rem}.actions{display:grid;gap:.75rem}.buy{background:var(--grad);color:#071a0f;border:none;border-radius:12px;padding:1rem;font-family:'Syne';font-weight:800;font-size:1rem;cursor:pointer}.outline{background:none;color:var(--azul);border:1px solid rgba(0,170,255,.4);border-radius:12px;padding:.9rem;font-weight:800;cursor:pointer}.details{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1.2rem}.detail{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.8rem}.label{font-size:.72rem;color:var(--muted);text-transform:uppercase}.value{font-weight:800;margin-top:.2rem}.empty,.msgbox{background:var(--bg2);border:1px dashed var(--border);border-radius:18px;padding:2rem;text-align:center;color:var(--muted)}.msgbox{border-style:solid;margin-top:1rem;text-align:left}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}.modal.open{display:flex}.panel{width:100%;max-width:430px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.4rem}input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:11px;color:var(--text);padding:.8rem;margin:.45rem 0 1rem;outline:none}label{font-size:.8rem;color:var(--muted)}textarea{min-height:80px;resize:vertical}.row{display:flex;gap:.7rem}.row button{flex:1}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.photo{height:320px}h1{font-size:2rem}}
 </style>
 </head>
 <body>
 <nav>
   <a class="logo" href="index.html">ZerouFood</a>
-  <a class="btn" href="index.html">Voltar</a>
+  <div><a class="btn" href="index.html">Voltar</a> <a class="btn" href="login.html">Entrar</a></div>
 </nav>
 <main id="productRoot">
   <div class="empty">Carregando produto...</div>
 </main>
 
+<div class="modal" id="offerModal">
+  <div class="panel">
+    <h2 style="font-family:Syne;margin-bottom:.4rem">Enviar oferta</h2>
+    <p style="margin-bottom:1rem">Faça uma proposta para o vendedor.</p>
+    <label>Valor da sua oferta</label>
+    <input id="offerAmount" type="number" min="1" step="0.01">
+    <label>Mensagem opcional</label>
+    <textarea id="offerMessage" placeholder="Ex: consigo retirar ainda hoje."></textarea>
+    <div class="row">
+      <button class="btn" onclick="closeOffer()">Cancelar</button>
+      <button class="buy" onclick="sendOffer()">Enviar oferta</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="zeroufood-app.js"></script>
 <script>
+let currentProduct = null;
+
+function openOffer(){ document.getElementById("offerModal").classList.add("open"); }
+function closeOffer(){ document.getElementById("offerModal").classList.remove("open"); }
+
+async function buyNow(){
+  if (!currentProduct) return;
+  const auth = await zfGetCurrentUser();
+  if (!auth) {
+    window.location.href = "login.html?redirect=" + encodeURIComponent(window.location.pathname.split("/").pop() + window.location.search);
+    return;
+  }
+
+  const method = confirm("Confirmar pedido para retirada no local?\\n\\nOK = Retirada no local\\nCancelar = Pix manual") ? "pickup" : "pix";
+
+  try {
+    const order = await zfCreateOrderFromProduct(currentProduct, method);
+    document.getElementById("actionMsg").innerHTML = "<strong>Pedido criado com sucesso!</strong><br>Status: pendente. O vendedor verá este pedido no painel.";
+  } catch(err) {
+    document.getElementById("actionMsg").textContent = "Erro ao criar pedido: " + err.message;
+  }
+}
+
+async function sendOffer(){
+  if (!currentProduct) return;
+  const user = await zfGetCurrentUser();
+  if (!user) {
+    window.location.href = "login.html?redirect=" + encodeURIComponent(window.location.pathname.split("/").pop() + window.location.search);
+    return;
+  }
+
+  const amount = Number(document.getElementById("offerAmount").value || 0);
+  const message = document.getElementById("offerMessage").value || "";
+
+  if (!amount || amount <= 0) {
+    alert("Informe um valor de oferta.");
+    return;
+  }
+
+  try {
+    await zfCreateOfferFromProduct(currentProduct, amount, message);
+    closeOffer();
+    document.getElementById("actionMsg").innerHTML = "<strong>Oferta enviada com sucesso!</strong><br>O vendedor verá sua proposta no painel.";
+  } catch(err) {
+    alert("Erro ao enviar oferta: " + err.message);
+  }
+}
+
 async function renderProduct(){
   const root = document.getElementById("productRoot");
   const params = new URLSearchParams(window.location.search);
@@ -37,6 +101,7 @@ async function renderProduct(){
 
   try {
     const p = await zfLoadProductById(id);
+    currentProduct = p;
     if (!p) {
       root.innerHTML = '<div class="empty">Produto não encontrado.</div>';
       return;
@@ -60,9 +125,11 @@ async function renderProduct(){
           <div class="price">${zfMoney(p.sale_price)}</div>
 
           <div class="actions">
-            <button class="buy" onclick="alert('Checkout real será conectado na próxima etapa.')">Comprar agora</button>
-            <button class="outline" onclick="alert('Oferta real será conectada após pedidos.')">Enviar proposta</button>
+            <button class="buy" onclick="buyNow()">Comprar agora</button>
+            <button class="outline" onclick="openOffer()">Enviar proposta</button>
           </div>
+
+          <div id="actionMsg" class="msgbox" style="display:block">Pedidos e ofertas agora são salvos no Supabase.</div>
 
           <div class="details">
             <div class="detail"><div class="label">Quantidade</div><div class="value">${p.quantity || 1}</div></div>
@@ -71,6 +138,7 @@ async function renderProduct(){
         </div>
       </div>
     `;
+    document.getElementById("offerAmount").value = Math.max(1, Number(p.sale_price || 0) * 0.9).toFixed(2);
   } catch(err) {
     root.innerHTML = '<div class="empty">Erro ao carregar produto: '+ err.message +'</div>';
   }

@@ -103,6 +103,27 @@ label{display:block;font-size:.78rem;color:var(--muted);margin:.85rem 0 .35rem}i
       </div>
     </div>
   </section>
+
+<section class="grid" style="margin-top:1.2rem">
+  <div class="card">
+    <h2>Pedidos recebidos</h2>
+    <div class="body">
+      <div id="sellerOrders" class="products">
+        <div class="empty">Carregando pedidos...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ofertas recebidas</h2>
+    <div class="body">
+      <div id="sellerOffers" class="products">
+        <div class="empty">Carregando ofertas...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -170,5 +191,82 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 </script>
+
+<script>
+async function renderSellerOrders(){
+  const box = document.getElementById("sellerOrders");
+  if (!box) return;
+  const orders = await zfLoadSellerOrders();
+
+  if (!orders.length) {
+    box.innerHTML = '<div class="empty">Nenhum pedido recebido ainda.</div>';
+    return;
+  }
+
+  box.innerHTML = orders.map(o => `
+    <div class="prod" style="grid-template-columns:1fr auto">
+      <div>
+        <h3>${o.products?.name || "Produto"}</h3>
+        <div class="meta">Comprador: ${o.profiles?.name || o.profiles?.email || "Cliente"}</div>
+        <div class="meta">Pagamento: ${o.payment_method === "pix" ? "Pix manual" : "Retirada no local"} · Status: ${zfStatusLabel(o.status)}</div>
+      </div>
+      <div>
+        <div class="price">${zfMoney(o.amount)}</div>
+        <button class="btn" onclick="markOrderReady('${o.id}')">Pronto</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function renderSellerOffers(){
+  const box = document.getElementById("sellerOffers");
+  if (!box) return;
+  const offers = await zfLoadSellerOffers();
+
+  if (!offers.length) {
+    box.innerHTML = '<div class="empty">Nenhuma oferta recebida ainda.</div>';
+    return;
+  }
+
+  box.innerHTML = offers.map(o => `
+    <div class="prod" style="grid-template-columns:1fr auto">
+      <div>
+        <h3>${o.products?.name || "Produto"}</h3>
+        <div class="meta">Comprador: ${o.profiles?.name || o.profiles?.email || "Cliente"}</div>
+        <div class="meta">Status: ${zfStatusLabel(o.status)}</div>
+        ${o.message ? `<div class="meta">Mensagem: ${o.message}</div>` : ""}
+      </div>
+      <div>
+        <div class="price">${zfMoney(o.amount)}</div>
+        <button class="btn" onclick="acceptOffer('${o.id}')">Aceitar</button>
+        <button class="btn" onclick="rejectOffer('${o.id}')">Recusar</button>
+      </div>
+    </div>
+  `).join("").replaceAll("rejectOffer('${o.id')", "rejectOffer('${o.id}')");
+}
+
+async function acceptOffer(id){
+  await zfUpdateOfferStatus(id, "accepted");
+  await renderSellerOffers();
+}
+
+async function rejectOffer(id){
+  await zfUpdateOfferStatus(id, "rejected");
+  await renderSellerOffers();
+}
+
+async function markOrderReady(id){
+  await zfUpdateOrderStatus(id, "ready");
+  await renderSellerOrders();
+}
+
+document.addEventListener("DOMContentLoaded", async function(){
+  setTimeout(async () => {
+    await renderSellerOrders();
+    await renderSellerOffers();
+  }, 1000);
+});
+</script>
+
 </body>
 </html>

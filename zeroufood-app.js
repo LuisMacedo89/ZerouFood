@@ -325,3 +325,150 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("Auth render error:", err.message);
   }
 });
+
+
+// ===== ZerouFood V4 — Pedidos e Ofertas reais =====
+
+async function zfCreateOrderFromProduct(product, paymentMethod = "pickup") {
+  const auth = await zfRequireAuth();
+  if (!auth) return null;
+
+  const { data: store, error: storeError } = await zeroufoodSupabase
+    .from("stores")
+    .select("*")
+    .eq("id", product.store_id)
+    .single();
+
+  if (storeError) throw storeError;
+
+  const { data, error } = await zeroufoodSupabase
+    .from("orders")
+    .insert({
+      buyer_id: auth.user.id,
+      seller_id: store.owner_id,
+      product_id: product.id,
+      amount: product.sale_price,
+      payment_method: paymentMethod,
+      status: "pending"
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function zfCreateOfferFromProduct(product, amount, message = "") {
+  const auth = await zfRequireAuth();
+  if (!auth) return null;
+
+  const { data: store, error: storeError } = await zeroufoodSupabase
+    .from("stores")
+    .select("*")
+    .eq("id", product.store_id)
+    .single();
+
+  if (storeError) throw storeError;
+
+  const { data, error } = await zeroufoodSupabase
+    .from("offers")
+    .insert({
+      product_id: product.id,
+      buyer_id: auth.user.id,
+      seller_id: store.owner_id,
+      amount,
+      message,
+      status: "sent"
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function zfLoadSellerOrders() {
+  const auth = await zfRequireAuth();
+  if (!auth) return [];
+
+  const { data, error } = await zeroufoodSupabase
+    .from("orders")
+    .select(`
+      *,
+      products(name, sale_price),
+      profiles!orders_buyer_id_fkey(name, email)
+    `)
+    .eq("seller_id", auth.user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Erro ao carregar pedidos:", error.message);
+    return [];
+  }
+  return data || [];
+}
+
+async function zfLoadSellerOffers() {
+  const auth = await zfRequireAuth();
+  if (!auth) return [];
+
+  const { data, error } = await zeroufoodSupabase
+    .from("offers")
+    .select(`
+      *,
+      products(name, sale_price),
+      profiles!offers_buyer_id_fkey(name, email)
+    `)
+    .eq("seller_id", auth.user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Erro ao carregar ofertas:", error.message);
+    return [];
+  }
+  return data || [];
+}
+
+async function zfUpdateOfferStatus(offerId, status, counterAmount = null) {
+  const update = { status };
+  if (counterAmount !== null) update.counter_amount = counterAmount;
+
+  const { data, error } = await zeroufoodSupabase
+    .from("offers")
+    .update(update)
+    .eq("id", offerId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function zfUpdateOrderStatus(orderId, status) {
+  const { data, error } = await zeroufoodSupabase
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+function zfStatusLabel(status) {
+  const map = {
+    pending: "Pendente",
+    paid: "Pago",
+    ready: "Pronto para retirada",
+    completed: "Concluído",
+    cancelled: "Cancelado",
+    sent: "Oferta enviada",
+    accepted: "Aceita",
+    rejected: "Recusada",
+    countered: "Contraoferta enviada",
+    counter_accepted: "Contraoferta aceita",
+    counter_rejected: "Contraoferta recusada"
+  };
+  return map[status] || status || "Pendente";
+}
