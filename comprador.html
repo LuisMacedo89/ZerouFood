@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZerouFood — Área do Comprador</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#00E5A0;--azul:#00AAFF;--vermelho:#FF4D4D;--amarelo:#FFB800;--bg:#161927;--bg2:#1E2235;--bg3:#252A40;--text:#EEF2FF;--muted:#7A85A8;--border:rgba(255,255,255,.08);--grad:linear-gradient(90deg,#00E5A0,#00AAFF)}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{height:68px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:20}
+.logo{font-family:'Syne';font-size:1.45rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}.btn{border:1px solid var(--border);background:var(--bg3);color:var(--text);border-radius:10px;padding:.6rem .9rem;text-decoration:none;cursor:pointer;font-family:'DM Sans'}.btn:hover{border-color:var(--verde)}.primary{background:var(--grad);border:none;color:#071a0f;font-weight:800}
+main{max-width:1180px;margin:0 auto;padding:2rem 5%}.hero{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap}
+h1{font-family:'Syne';font-size:2.1rem;margin-bottom:.35rem}p{color:var(--muted);line-height:1.55}.session{background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.22);border-radius:14px;padding:1rem;min-width:260px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.4rem}.stat{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.1rem}.label{font-size:.75rem;color:var(--muted);margin-bottom:.35rem}.num{font-family:'Syne';font-size:1.7rem;font-weight:800;color:var(--verde)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}.card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden}.card h2{font-family:'Syne';font-size:1.05rem;padding:1rem 1.2rem;border-bottom:1px solid var(--border)}.body{padding:1.2rem}.list{display:grid;gap:.75rem}
+.item{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:1rem;display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:start}.item h3{font-size:1rem;margin-bottom:.25rem}.meta{font-size:.82rem;color:var(--muted);line-height:1.5}.price{font-family:'Syne';font-size:1.2rem;font-weight:800;color:var(--verde);white-space:nowrap;text-align:right}.badge{display:inline-block;border-radius:999px;padding:.22rem .6rem;font-size:.72rem;font-weight:800;margin-top:.4rem}.pending{background:rgba(255,184,0,.12);color:var(--amarelo);border:1px solid rgba(255,184,0,.25)}.ok{background:rgba(0,229,160,.12);color:var(--verde);border:1px solid rgba(0,229,160,.25)}.bad{background:rgba(255,77,77,.12);color:var(--vermelho);border:1px solid rgba(255,77,77,.25)}.empty{padding:1.2rem;color:var(--muted);background:var(--bg3);border:1px dashed var(--border);border-radius:14px}.actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.6rem;flex-wrap:wrap}.small{font-size:.78rem;padding:.45rem .65rem}
+@media(max-width:850px){.grid,.stats{grid-template-columns:1fr}.item{grid-template-columns:1fr}.price{text-align:left}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html">ZerouFood</a>
+  <div class="nav">
+    <a class="btn" href="index.html">Marketplace</a>
+    <a class="btn" href="painel-vendedor.html">Painel vendedor</a>
+    <button class="btn" data-zf-logout>Sair</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <h1>Área do comprador</h1>
+      <p>Acompanhe seus pedidos, propostas enviadas e status de negociação.</p>
+    </div>
+    <div class="session">
+      <strong data-zf-user-name>Carregando...</strong><br>
+      <span data-zf-user-email style="color:var(--muted);font-size:.9rem"></span>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="label">Pedidos feitos</div><div class="num" id="ordersCount">0</div></div>
+    <div class="stat"><div class="label">Ofertas enviadas</div><div class="num" id="offersCount">0</div></div>
+    <div class="stat"><div class="label">Aguardando resposta</div><div class="num" id="pendingCount">0</div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Meus pedidos</h2>
+      <div class="body"><div id="buyerOrders" class="list"><div class="empty">Carregando pedidos...</div></div></div>
+    </div>
+
+    <div class="card">
+      <h2>Minhas ofertas</h2>
+      <div class="body"><div id="buyerOffers" class="list"><div class="empty">Carregando ofertas...</div></div></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="zeroufood-app.js"></script>
+<script>
+function badgeClass(status){
+  if(["accepted","counter_accepted","paid","ready","completed"].includes(status)) return "ok";
+  if(["rejected","counter_rejected","cancelled"].includes(status)) return "bad";
+  return "pending";
+}
+
+async function renderBuyerOrders(){
+  const box = document.getElementById("buyerOrders");
+  const orders = await zfLoadBuyerOrders();
+  document.getElementById("ordersCount").textContent = orders.length;
+
+  if (!orders.length) {
+    box.innerHTML = '<div class="empty">Você ainda não fez pedidos.</div>';
+    return;
+  }
+
+  box.innerHTML = orders.map(o => `
+    <div class="item">
+      <div>
+        <h3>${o.products?.name || "Produto"}</h3>
+        <div class="meta">Vendedor: ${o.profiles?.name || o.profiles?.email || "Loja ZerouFood"}</div>
+        <div class="meta">Pagamento: ${o.payment_method === "pix" ? "Pix manual" : "Retirada no local"}</div>
+        <span class="badge ${badgeClass(o.status)}">${zfStatusLabel(o.status)}</span>
+        ${o.products?.id ? `<div class="meta" style="margin-top:.5rem"><a href="produto.html?id=${o.products.id}" style="color:var(--verde)">Ver produto</a></div>` : ""}
+      </div>
+      <div class="price">${zfMoney(o.amount)}</div>
+    </div>
+  `).join("");
+}
+
+async function renderBuyerOffers(){
+  const box = document.getElementById("buyerOffers");
+  const offers = await zfLoadBuyerOffers();
+
+  document.getElementById("offersCount").textContent = offers.length;
+  document.getElementById("pendingCount").textContent = offers.filter(o => ["sent","countered"].includes(o.status)).length;
+
+  if (!offers.length) {
+    box.innerHTML = '<div class="empty">Você ainda não enviou ofertas.</div>';
+    return;
+  }
+
+  box.innerHTML = offers.map(o => `
+    <div class="item">
+      <div>
+        <h3>${o.products?.name || "Produto"}</h3>
+        <div class="meta">Vendedor: ${o.profiles?.name || o.profiles?.email || "Loja ZerouFood"}</div>
+        <div class="meta">Preço anunciado: ${zfMoney(o.products?.sale_price || 0)}</div>
+        ${o.counter_amount ? `<div class="meta">Contraoferta: ${zfMoney(o.counter_amount)}</div>` : ""}
+        <span class="badge ${badgeClass(o.status)}">${zfStatusLabel(o.status)}</span>
+        ${o.products?.id ? `<div class="meta" style="margin-top:.5rem"><a href="produto.html?id=${o.products.id}" style="color:var(--verde)">Ver produto</a></div>` : ""}
+        ${o.status === "countered" ? `
+        <div class="actions">
+          <button class="btn small primary" onclick="acceptCounter('${o.id}')">Aceitar contraoferta</button>
+          <button class="btn small" onclick="rejectCounter('${o.id}')">Recusar</button>
+        </div>` : ""}
+      </div>
+      <div class="price">${zfMoney(o.amount)}</div>
+    </div>
+  `).join("");
+}
+
+async function acceptCounter(id){
+  await zfBuyerAcceptCounterOffer(id);
+  await renderBuyerOffers();
+}
+
+async function rejectCounter(id){
+  await zfBuyerRejectCounterOffer(id);
+  await renderBuyerOffers();
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const auth = await zfRequireAuth();
+  if (!auth) return;
+
+  await zfRenderLoggedUser();
+  await renderBuyerOrders();
+  await renderBuyerOffers();
+});
+</script>
+</body>
+</html>
